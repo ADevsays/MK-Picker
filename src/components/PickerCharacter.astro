@@ -1,177 +1,113 @@
 ---
-import selectCharacter from '../utils/selectCharacter';
-import ButtonSlider from './ButtonSlider.astro';
-import Character from './Character.astro';
+import selectCharacter from "../utils/selectCharacter";
+import ButtonSlider from "./ButtonSlider.astro";
+import Character from "./Character.astro";
 
-interface Character{
-    name:string, 
-    description:string, 
-    id:number
+interface Character {
+    name: string;
+    description: string;
+    id: number;
 }
-interface Props{
-    characters: Character[]
+interface Props {
+    characters: Character[];
 }
 ---
 
 <script>
     import { charactersData } from "../const/charactersData";
-    import {$$, $} from "../utils/domUtils";
+    import { $$, $ } from "../utils/domUtils";
+    import renderCard from "../utils/renderCard";
     import selectCharacter from "../utils/selectCharacter";
+    import handleCharacterChange from "../utils/handleCharacterChange";
+    import sliderCharacter from "../utils/sliderCharacter";
 
-    let to = 0;
-    let from = 3;
 
-    const renderCard = (id:number, img:string, name:string)=>{
-        const componentCardCharacter = `
-                <div
-                    data-character=${id} 
-                    style="background-image: url(./img/background.jpg);"
-                    class="hover:scale-[1.04] transition-transform relative cursor-pointer w-[150px] rounded bg-cover bg-center flex justify-center items-center">
-                    <div 
-                        id=${id}
-                        class="h-[200px]">
-                        <img
-                            class="w-full h-full object-contain" 
-                            src="${img}" 
-                            alt="${name}">
-                    </div>
-                    <p class="absolute bottom-[5px] left-[6px] font-medium text-white">${name}</p>
-                </div>
-            `;
-        return componentCardCharacter;
+    const handleSelectCharacter = () => {
+        const allCharacters = $$("[data-character]");
+        allCharacters.forEach((el) => {
+            el.addEventListener("click", () => handleCharacterChange(el));
+        });
     };
 
-    const handleSelectCharacter = ()=>{
-            const allCharacters = $$("[data-character]");
-            allCharacters.forEach(el=> {
-                el.addEventListener("click", ()=>{
-                    const selectCharacterId = el.getAttribute("data-character");
-                    if(!selectCharacterId){
-                        throw new Error("El personaje con el id no se pudo clickear")
-                    };
-                    const imgMainCharacter = $("#mainCharacter")?.querySelector("img");
-                    const nameMainCharacter = $("#mainCharacterInfo")?.querySelector("h3");
-                    const descriptionMainCharacter = $("#mainCharacterInfo")?.querySelector("p");
-                    if(!imgMainCharacter || !nameMainCharacter || !descriptionMainCharacter) return;
+    const renderCardsCharacters = (to: number = 0, from: number = 3) => {
+        const picker = $("[data-picker]");
+        if (!picker) return;
 
-                    imgMainCharacter.classList.remove("animated-character-img");
-                    descriptionMainCharacter.classList.remove("animated-character-text");
-
-                    const findCharacter =charactersData.find(character=>  character.id === Number(selectCharacterId));
-                    if(!findCharacter) return;
-                    nameMainCharacter.textContent = findCharacter.name;
-
-                    setTimeout(() => {
-                        imgMainCharacter.classList.add("animated-character-img"); 
-                        imgMainCharacter.src = selectCharacter(findCharacter?.name.toLowerCase());
-                        descriptionMainCharacter.textContent = findCharacter.description;
-                        descriptionMainCharacter.classList.add("animated-character-text");
-                    
-                    }, 100);
-
-                })
-            })
+        while (picker.firstChild) {
+            picker.removeChild(picker.firstChild);
         }
 
-    const renderCardsCharacters = (to:number = 0, from:number=3)=>{
-            const picker = $("[data-picker]");
-            if(!picker) return;
-            
-            while(picker.firstChild){
-                picker.removeChild(picker.firstChild);
-            }
+        charactersData.slice(to, from).forEach(({ name, id }) => {
+            const cardDiv = document.createElement("DIV");
+            cardDiv.innerHTML = renderCard(
+                id,
+                selectCharacter(name.toLowerCase().trim()),
+                name.trim(),
+            );
+            cardDiv.classList.add("animated-card-in");
+            picker.appendChild(cardDiv);
+        });
 
-            charactersData.slice(to, from).forEach(({name, id})=> {
-                const cardDiv = document.createElement("DIV");
-                cardDiv.innerHTML = renderCard(id, selectCharacter(name.toLowerCase().trim()), name.trim());
-                cardDiv.classList.add("animated-card-in");
-                picker.appendChild(cardDiv);
-            })
-
-            handleSelectCharacter();
-        }
-
-    const handleSlideCharacters = (type: string)=>{
-        to += (type === "right") ? 3 : -3;
-        from += (type === "right") ? 3 : -3;
-
-        if(from > charactersData.length){
-            to = 0;
-            from = 3;
-        }
-    
-        if(to < 0){
-            to = charactersData.length - 3;
-            from = charactersData.length;
-        }
-
-        const start = Math.max(0, to);
-        const end = Math.min(charactersData.length, from);
-        
-        console.log(start, end)
-
-        renderCardsCharacters(start, end);
+        handleSelectCharacter();
     };
 
-    const setButtonSlider = ()=>{
+    const setButtonSlider = () => {
         const btnRight = $("[data-right]") as HTMLButtonElement;
         const btnLeft = $("[data-left]");
-
-        btnRight?.addEventListener("click", ()=> handleSlideCharacters("right"));
-        btnLeft?.addEventListener("click", ()=> handleSlideCharacters("left"));
+        btnRight?.addEventListener("click", () => sliderCharacter("right", renderCardsCharacters));
+        btnLeft?.addEventListener("click", () => sliderCharacter("left", renderCardsCharacters));
     };
-    document.addEventListener("DOMContentLoaded", ()=>{
+    
+    document.addEventListener("DOMContentLoaded", () => {
         renderCardsCharacters();
         handleSelectCharacter();
         setButtonSlider();
-
     });
 </script>
 
 <div class="flex w-full flex-end justify-end">
-    <ButtonSlider/>
-    <div data-picker class="flex gap-6 justify-end pe-2">
-    </div>    
+    <ButtonSlider />
+    <div data-picker class="flex gap-6 justify-end pe-2"></div>
 </div>
 
 <style is:global>
-    .animated-card-in{
+    .animated-card-in {
         animation: moving-card-in 0.4s ease-out;
     }
 
-    .animated-character-img{
+    .animated-character-img {
         animation: character-img 0.3s ease-in;
     }
 
-    .animated-character-title{
-        /* animation: character-title 0.1s ease-in; */
+    .animated-character-title {
+        animation: character-title 0.1s ease-in;
     }
 
-    .animated-character-text{
+    .animated-character-text {
         animation: character-text 0.4s ease-in;
     }
 
     @keyframes moving-card-in {
-        0%{
+        0% {
             opacity: 0;
             transform: translateX(-70px);
         }
-        100%{
+        100% {
             opacity: 1;
             transform: translateX(0);
         }
     }
 
     @keyframes character-img {
-        0%{
+        0% {
             opacity: 0;
             scale: 0.9;
             transform: translateY(30px);
         }
-        75%{
+        75% {
             scale: 1.05;
         }
-        100%{
+        100% {
             opacity: 1;
             scale: 1;
             transform: translateY(0);
@@ -179,25 +115,25 @@ interface Props{
     }
 
     @keyframes character-title {
-        0%{
+        0% {
             opacity: 0;
             transform: translateY(-25px);
         }
-        100%{
+        100% {
             opacity: 1;
             transform: translateY(0);
         }
     }
 
     @keyframes character-text {
-        0%{
+        0% {
             opacity: 0;
             transform: translateX(80px);
         }
-        50%{
+        50% {
             transform: translateX(0);
         }
-        100%{
+        100% {
             opacity: 1;
         }
     }
