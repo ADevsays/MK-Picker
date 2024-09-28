@@ -1,0 +1,17 @@
+---
+interface Props{
+    characterName:string
+    characterDescription:string,
+    id?:string
+}
+const {characterDescription, characterName, id} = Astro.props;
+---
+
+<div
+ id={id}
+ class="absolute left-[120px] top-[100px]">
+    <h3 
+        style="font-size: 8rem;" 
+        class="animated-character-title text-white font-bold text-left w-[220px] leading-[120px]">{characterName}</h3>
+    <p class="animated-character-text mt-4 text-white text-left w-[420px] leading-5">{characterDescription}</p>
+</div>
