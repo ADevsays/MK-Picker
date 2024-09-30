@@ -28,6 +28,9 @@ export default function handleCharacterChange(el:Element){
     const findCharacter = charactersData.find(character=>  character.id === Number(selectCharacterId));
     if(!findCharacter) return;
 
+    const isSame = findCharacter.name === title.textContent;
+    if(isSame) return;
+
     setTimeout(() => {
         img.src = selectCharacter(findCharacter?.name.toLowerCase());
         text.textContent = findCharacter.description;

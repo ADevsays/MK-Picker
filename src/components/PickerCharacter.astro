@@ -1,5 +1,4 @@
 ---
-import selectCharacter from "../utils/selectCharacter";
 import ButtonSlider from "./ButtonSlider.astro";
 import Character from "./Character.astro";
 
@@ -57,7 +56,7 @@ interface Props {
         btnRight?.addEventListener("click", () => sliderCharacter("right", renderCardsCharacters));
         btnLeft?.addEventListener("click", () => sliderCharacter("left", renderCardsCharacters));
     };
-    
+
     document.addEventListener("DOMContentLoaded", () => {
         renderCardsCharacters();
         handleSelectCharacter();
